@@ -4,6 +4,7 @@ import { use, useCallback, useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotes } from '@/hooks/useNotes'
 import { useCursors } from '@/hooks/useCursors'
+import { useSpeechToText } from '@/hooks/useSpeechToText'
 import { NicknameModal } from '@/components/NicknameModal'
 import Canvas from '@/components/Canvas'
 import BottomToolbar from '@/components/BottomToolbar'
@@ -55,6 +56,33 @@ export default function RoomPage({ params }: Props) {
     updateCursor(e.clientX + viewOffset.x, e.clientY + viewOffset.y)
   }, [updateCursor, viewOffset])
 
+  // 음성 인식 훅
+  const {
+    isSupported: isMicSupported,
+    isListening: isMicListening,
+    interimText,
+    start: startMic,
+    stop: stopMic,
+  } = useSpeechToText({
+    lang: 'ko-KR',
+    onResult: (text) => {
+      // 음성 인식 완료 시 현재 뷰 중앙에 새 포스트잇 생성 (빈 노트 — 내용은 사용자가 편집)
+      const offset = (notes.length % 10) * 20
+      addNote(
+        viewOffset.x + (viewSize.width || window.innerWidth) / 2 + offset,
+        viewOffset.y + (viewSize.height || window.innerHeight) / 2 + offset,
+      )
+      // addNote는 content를 받지 않으므로, 인식된 텍스트(text)는 현재 콘솔에만 기록
+      // 향후 addNote(x, y, content) 시그니처 확장 시 활용 가능
+      console.info('[STT] 인식된 텍스트:', text)
+    },
+  })
+
+  const handleMicClick = useCallback(() => {
+    if (isMicListening) stopMic()
+    else startMic()
+  }, [isMicListening, startMic, stopMic])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#c4a472]">
@@ -66,33 +94,55 @@ export default function RoomPage({ params }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative w-screen h-screen overflow-hidden"
+      className="relative flex w-screen h-dvh overflow-hidden"
       onMouseMove={handleMouseMove}
     >
       {session?.isNew && <NicknameModal onConfirm={updateNickname} />}
 
-      <Canvas
-        notes={notes}
-        viewOffset={viewOffset}
-        onMove={moveNote}
-        onUpdate={updateNote}
-        onDelete={deleteNote}
-        onColorChange={changeColor}
-        onPan={handlePan}
-      />
-
-      <CursorLayer cursors={cursors} viewOffset={viewOffset} />
-
-      <BottomToolbar onAddNote={handleAddNote} />
-
-      {viewSize.width > 0 && (
-        <MiniMap
+      {/* 메인 캔버스 영역 */}
+      <div className="relative flex-1 overflow-hidden">
+        <Canvas
           notes={notes}
           viewOffset={viewOffset}
-          viewSize={viewSize}
-          onNavigate={(x, y) => setViewOffset({ x, y })}
+          onMove={moveNote}
+          onUpdate={updateNote}
+          onDelete={deleteNote}
+          onColorChange={changeColor}
+          onPan={handlePan}
         />
-      )}
+
+        <CursorLayer cursors={cursors} viewOffset={viewOffset} />
+
+        {viewSize.width > 0 && (
+          <MiniMap
+            notes={notes}
+            viewOffset={viewOffset}
+            viewSize={viewSize}
+            onNavigate={(x, y) => setViewOffset({ x, y })}
+          />
+        )}
+      </div>
+
+      {/* 데스크톱 전용 우측 사이드바 (lg: 1024px 이상) */}
+      <aside className="hidden lg:flex lg:flex-col w-56 border-l border-amber-200/50 bg-amber-50/80 backdrop-blur-sm p-4 z-10">
+        <h2 className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider mb-3">접속자</h2>
+        <div className="flex flex-col gap-2">
+          {session && (
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: session.color }} />
+              <span className="text-sm text-amber-900/80 truncate">{session.nickname} (나)</span>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      <BottomToolbar
+        onAddNote={handleAddNote}
+        onMicClick={handleMicClick}
+        isMicListening={isMicListening}
+        isMicSupported={isMicSupported}
+        interimText={interimText}
+      />
     </div>
   )
 }
