@@ -10,6 +10,9 @@ import Canvas from '@/components/Canvas'
 import BottomToolbar from '@/components/BottomToolbar'
 import MiniMap from '@/components/MiniMap'
 import CursorLayer from '@/components/CursorLayer'
+import { ClusterGroupOverlay } from '@/components/ClusterGroupOverlay'
+import { ClusterPreviewModal } from '@/components/ClusterPreviewModal'
+import { useCluster } from '@/hooks/useCluster'
 
 interface Props {
   params: Promise<{ roomId: string }>
@@ -55,6 +58,39 @@ export default function RoomPage({ params }: Props) {
     // 캔버스 좌표계로 변환 (viewOffset 적용)
     updateCursor(e.clientX + viewOffset.x, e.clientY + viewOffset.y)
   }, [updateCursor, viewOffset])
+
+  // 클러스터링 훅
+  const {
+    status: clusterStatus,
+    groups: clusterGroups,
+    errorMessage: clusterError,
+    requestCluster,
+    applyCluster,
+    cancelCluster,
+    undoCluster,
+  } = useCluster()
+
+  const handleCluster = useCallback(async () => {
+    if (!session) return
+    await requestCluster(notes, session.uid)
+  }, [notes, session, requestCluster])
+
+  const handleApplyCluster = useCallback(() => {
+    const updated = applyCluster(notes)
+    updated.forEach((note) => {
+      const original = notes.find((n) => n.id === note.id)
+      if (original && (original.x !== note.x || original.y !== note.y)) {
+        moveNote(note.id, note.x, note.y)
+      }
+    })
+  }, [notes, applyCluster, moveNote])
+
+  const handleUndoCluster = useCallback(() => {
+    const restored = undoCluster()
+    if (restored) {
+      restored.forEach((note) => moveNote(note.id, note.x, note.y))
+    }
+  }, [undoCluster, moveNote])
 
   // 음성 인식 훅
   const {
@@ -109,6 +145,11 @@ export default function RoomPage({ params }: Props) {
           onDelete={deleteNote}
           onColorChange={changeColor}
           onPan={handlePan}
+          overlay={
+            clusterStatus === 'applied' && clusterGroups.length > 0
+              ? <ClusterGroupOverlay groups={clusterGroups} notes={notes} />
+              : undefined
+          }
         />
 
         <CursorLayer cursors={cursors} viewOffset={viewOffset} />
@@ -142,7 +183,33 @@ export default function RoomPage({ params }: Props) {
         isMicListening={isMicListening}
         isMicSupported={isMicSupported}
         interimText={interimText}
+        onCluster={handleCluster}
+        clusterStatus={clusterStatus}
+        onUndo={handleUndoCluster}
+        canUndo={clusterStatus === 'applied'}
       />
+
+      <ClusterPreviewModal
+        isOpen={clusterStatus === 'preview'}
+        groups={clusterGroups}
+        onApply={handleApplyCluster}
+        onCancel={cancelCluster}
+      />
+
+      {/* 에러 토스트 */}
+      {clusterStatus === 'error' && clusterError && (
+        <div style={{
+          position: 'fixed', bottom: 90, left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(239,68,68,0.95)',
+          color: '#fff', fontSize: 13, fontWeight: 600,
+          padding: '8px 16px', borderRadius: 99,
+          boxShadow: '0 4px 16px rgba(239,68,68,0.4)',
+          zIndex: 60, whiteSpace: 'nowrap',
+        }}>
+          {clusterError}
+        </div>
+      )}
     </div>
   )
 }

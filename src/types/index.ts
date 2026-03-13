@@ -29,3 +29,17 @@ export interface User {
   nickname: string
   color: string
 }
+
+export interface ClusterGroup {
+  groupId: string
+  groupName: string
+  noteIds: string[]
+}
+
+export interface ClusterResult {
+  groups: ClusterGroup[]
+}
+
+export interface ClusterRequest {
+  notes: Array<{ id: string; content: string }>
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useCallback, useState, useEffect } from 'react'
+import React from 'react'
 import { Note } from '@/types'
 import StickyNote from './StickyNote'
 import { useCanvasGesture } from '@/hooks/useCanvasGesture'
@@ -13,9 +14,10 @@ interface CanvasProps {
   onDelete: (id: string) => void
   onColorChange: (id: string, colorIndex: number) => void
   onPan: (dx: number, dy: number) => void
+  overlay?: React.ReactNode
 }
 
-export default function Canvas({ notes, viewOffset, onMove, onUpdate, onDelete, onColorChange, onPan }: CanvasProps) {
+export default function Canvas({ notes, viewOffset, onMove, onUpdate, onDelete, onColorChange, onPan, overlay }: CanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const [isPanning, setIsPanning] = useState(false)
   const lastPos = useRef({ x: 0, y: 0 })
@@ -145,6 +147,7 @@ export default function Canvas({ notes, viewOffset, onMove, onUpdate, onDelete, 
           overflow: 'visible',
         }}
       >
+        {overlay}
         {notes.map((note) => (
           <StickyNote
             key={note.id}

@@ -1,11 +1,17 @@
 'use client'
 
+type ClusterStatus = 'idle' | 'loading' | 'preview' | 'applied' | 'error'
+
 interface BottomToolbarProps {
   onAddNote: () => void
   onMicClick?: () => void
   isMicListening?: boolean
   isMicSupported?: boolean
   interimText?: string
+  onCluster?: () => void
+  clusterStatus?: ClusterStatus
+  onUndo?: () => void
+  canUndo?: boolean
 }
 
 export default function BottomToolbar({
@@ -14,6 +20,10 @@ export default function BottomToolbar({
   isMicListening = false,
   isMicSupported = false,
   interimText,
+  onCluster,
+  clusterStatus = 'idle',
+  onUndo,
+  canUndo = false,
 }: BottomToolbarProps) {
   return (
     <>
@@ -81,25 +91,63 @@ export default function BottomToolbar({
           {/* 구분선 */}
           <div style={{ width: 1, height: 26, background: 'rgba(160,120,60,0.2)', margin: '0 2px' }} />
 
-          {/* AI 정리 버튼 (비활성) */}
+          {/* AI 정리 버튼 */}
           <button
             style={{
               width: 44, height: 44,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: 12,
-              background: 'rgba(0,0,0,0.04)',
-              border: '1px solid rgba(0,0,0,0.06)',
-              cursor: 'not-allowed', opacity: 0.38,
+              background: clusterStatus === 'loading'
+                ? 'rgba(99,102,241,0.12)'
+                : clusterStatus === 'applied'
+                  ? 'rgba(99,102,241,0.18)'
+                  : 'rgba(0,0,0,0.04)',
+              border: '1px solid rgba(99,102,241,0.2)',
+              cursor: clusterStatus === 'loading' ? 'not-allowed' : 'pointer',
+              opacity: clusterStatus === 'loading' ? 0.7 : 1,
+              transition: 'background 0.2s',
             }}
-            disabled
-            aria-label="AI 정리 (Phase 4에서 활성화)"
-            title="Phase 4에서 구현 예정"
+            onClick={onCluster}
+            disabled={clusterStatus === 'loading'}
+            aria-label="AI 정리"
+            title="노트를 주제별로 자동 정리"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-              stroke="rgba(80,50,20,0.7)" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
-              <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z" />
-            </svg>
+            {clusterStatus === 'loading' ? (
+              <div style={{
+                width: 18, height: 18, borderRadius: '50%',
+                border: '2.5px solid rgba(99,102,241,0.3)',
+                borderTopColor: 'rgba(99,102,241,0.9)',
+                animation: 'spin 0.7s linear infinite',
+              }} />
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="rgba(99,102,241,0.85)" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
+            )}
           </button>
+
+          {/* 되돌리기 버튼 (클러스터링 적용 후에만 표시) */}
+          {canUndo && (
+            <button
+              style={{
+                width: 44, height: 44,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                borderRadius: 12,
+                background: 'rgba(0,0,0,0.04)',
+                border: '1px solid rgba(0,0,0,0.08)',
+                cursor: 'pointer',
+              }}
+              onClick={onUndo}
+              aria-label="되돌리기"
+              title="AI 정리 취소"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="rgba(80,50,20,0.65)" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M3 10h10a8 8 0 018 8v2M3 10l6 6M3 10l6-6" />
+              </svg>
+            </button>
+          )}
 
           {/* 음성 메모 버튼 */}
           <button
