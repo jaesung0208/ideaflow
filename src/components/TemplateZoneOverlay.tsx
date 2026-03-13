@@ -89,6 +89,7 @@ function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: Dr
     >
       {/* 드래그 핸들: 라벨 바 */}
       <div
+        data-zone-handle="drag"
         onPointerDown={handleDragPointerDown}
         style={{
           position: 'absolute',
@@ -116,6 +117,7 @@ function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: Dr
 
       {/* 리사이즈 핸들: 우하단 */}
       <div
+        data-zone-handle="resize"
         onPointerDown={handleResizePointerDown}
         style={{
           position: 'absolute',
