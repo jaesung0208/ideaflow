@@ -11,6 +11,7 @@ import type { Note } from '@/types'
 
 export function useNotes(roomId: string) {
   const [notes, setNotes] = useState<Note[]>([])
+  const [notesError, setNotesError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!roomId) return
@@ -18,7 +19,11 @@ export function useNotes(roomId: string) {
     const q = query(notesRef, orderBy('createdAt', 'asc'))
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setNotes(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Note)))
-    }, (err) => console.error('Firestore 오류:', err))
+      setNotesError(null)
+    }, (err) => {
+      console.error('Firestore 오류:', err)
+      setNotesError('노트를 불러오는 중 오류가 발생했습니다')
+    })
     return () => unsubscribe()
   }, [roomId])
 
@@ -57,5 +62,5 @@ export function useNotes(roomId: string) {
     })
   }, [roomId])
 
-  return { notes, addNote, updateNote, moveNote, deleteNote, changeColor }
+  return { notes, notesError, addNote, updateNote, moveNote, deleteNote, changeColor }
 }

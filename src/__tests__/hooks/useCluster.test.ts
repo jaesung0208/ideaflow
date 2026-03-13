@@ -12,6 +12,7 @@ const makeNote = (id: string, content: string): Note => ({
   x: 100,
   y: 100,
   colorIndex: 0,
+  editorId: null,
 })
 
 describe('useCluster', () => {
@@ -54,8 +55,9 @@ describe('useCluster', () => {
 
   it('API 성공 시 preview 상태로 groups 설정', async () => {
     const mockGroups = [
-      { label: '기술', noteIds: ['1', '2'] },
-      { label: '일상', noteIds: ['3'] },
+      { groupId: 'g1', groupName: '기술', noteIds: ['1', '2'] },
+      { groupId: 'g2', groupName: '일상', noteIds: ['3'] },
+
     ]
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -119,7 +121,7 @@ describe('useCluster', () => {
   it('cancelCluster는 idle로 리셋', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ groups: [{ label: 'G', noteIds: ['1'] }] }),
+      json: async () => ({ groups: [{ groupId: 'g1', groupName: 'G', noteIds: ['1'] }] }),
     })
 
     const { result } = renderHook(() => useCluster())

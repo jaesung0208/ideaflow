@@ -16,6 +16,7 @@ import { db } from '@/lib/firebase'
 import { applyTemplate } from '@/lib/applyTemplate'
 import TemplatePickerModal from '@/components/TemplatePickerModal'
 import TemplateZoneOverlay from '@/components/TemplateZoneOverlay'
+import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 
 const ClusterGroupOverlay = dynamic(
   () => import('@/components/ClusterGroupOverlay').then((m) => m.ClusterGroupOverlay),
@@ -34,7 +35,8 @@ interface Props {
 export default function RoomPage({ params }: Props) {
   const { roomId } = use(params)
   const { session, loading, updateNickname } = useAuth()
-  const { notes, addNote, updateNote, moveNote, deleteNote, changeColor } = useNotes(roomId)
+  const { notes, notesError, addNote, updateNote, moveNote, deleteNote, changeColor } = useNotes(roomId)
+  const isOnline = useOnlineStatus()
   const { cursors, updateCursor } = useCursors(
     roomId,
     session?.uid ?? '',
@@ -315,6 +317,34 @@ export default function RoomPage({ params }: Props) {
           onSelect={handleTemplateSelect}
           onClose={() => setShowTemplatePicker(false)}
         />
+      )}
+
+      {/* 오프라인 배너 */}
+      {!isOnline && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0,
+          background: 'rgba(30,30,30,0.92)',
+          color: '#fff', fontSize: 13, fontWeight: 600,
+          padding: '8px 16px', textAlign: 'center',
+          zIndex: 70,
+        }}>
+          📡 오프라인 상태입니다 — 인터넷 연결을 확인해주세요
+        </div>
+      )}
+
+      {/* Firestore 노트 에러 토스트 */}
+      {notesError && (
+        <div style={{
+          position: 'fixed', bottom: 90, left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(239,68,68,0.95)',
+          color: '#fff', fontSize: 13, fontWeight: 600,
+          padding: '8px 16px', borderRadius: 99,
+          boxShadow: '0 4px 16px rgba(239,68,68,0.4)',
+          zIndex: 60, whiteSpace: 'nowrap',
+        }}>
+          {notesError}
+        </div>
       )}
 
       {/* 에러 토스트 */}

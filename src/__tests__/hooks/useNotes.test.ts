@@ -1,32 +1,32 @@
 import { renderHook, act } from '@testing-library/react'
 
-// Firebase mock (훅보다 먼저 선언해야 함)
-const mockUnsubscribe = jest.fn()
-const mockOnSnapshot = jest.fn(() => mockUnsubscribe)
-const mockAddDoc = jest.fn()
-const mockUpdateDoc = jest.fn()
-const mockDeleteDoc = jest.fn()
-const mockCollection = jest.fn()
-const mockDoc = jest.fn()
-const mockQuery = jest.fn((ref) => ref)
-const mockOrderBy = jest.fn()
-const mockServerTimestamp = jest.fn(() => ({ seconds: 0 }))
-
+// Firebase mock — jest.mock 후 import된 함수는 jest.fn()으로 대체됨
 jest.mock('firebase/firestore', () => ({
-  collection: (...args: unknown[]) => mockCollection(...args),
-  onSnapshot: (...args: unknown[]) => mockOnSnapshot(...args),
-  addDoc: (...args: unknown[]) => mockAddDoc(...args),
-  updateDoc: (...args: unknown[]) => mockUpdateDoc(...args),
-  deleteDoc: (...args: unknown[]) => mockDeleteDoc(...args),
-  doc: (...args: unknown[]) => mockDoc(...args),
-  query: (...args: unknown[]) => mockQuery(...args),
-  orderBy: (...args: unknown[]) => mockOrderBy(...args),
-  serverTimestamp: () => mockServerTimestamp(),
+  collection: jest.fn(),
+  onSnapshot: jest.fn(() => jest.fn()),
+  addDoc: jest.fn(),
+  updateDoc: jest.fn(),
+  deleteDoc: jest.fn(),
+  doc: jest.fn(),
+  query: jest.fn((ref: unknown) => ref),
+  orderBy: jest.fn(),
+  serverTimestamp: jest.fn(() => ({ seconds: 0 })),
 }))
 
 jest.mock('@/lib/firebase', () => ({ db: {} }))
 
+// jest.mock 이후 import → 자동으로 mock 버전으로 바인딩
+import {
+  onSnapshot, addDoc, updateDoc, deleteDoc,
+} from 'firebase/firestore'
+
 import { useNotes } from '@/hooks/useNotes'
+
+const mockOnSnapshot = onSnapshot as jest.Mock
+const mockAddDoc    = addDoc    as jest.Mock
+const mockUpdateDoc = updateDoc as jest.Mock
+const mockDeleteDoc = deleteDoc as jest.Mock
+const mockUnsubscribe = jest.fn()
 
 describe('useNotes', () => {
   beforeEach(() => {
@@ -35,7 +35,7 @@ describe('useNotes', () => {
   })
 
   it('초기 notes는 빈 배열', () => {
-    mockOnSnapshot.mockImplementation((_q, cb) => {
+    mockOnSnapshot.mockImplementation((_q: unknown, cb: (s: { docs: [] }) => void) => {
       cb({ docs: [] })
       return mockUnsubscribe
     })
@@ -50,7 +50,7 @@ describe('useNotes', () => {
       data: () => ({ content: '테스트', x: 10, y: 20, colorIndex: 1 }),
     }
 
-    mockOnSnapshot.mockImplementation((_q, cb) => {
+    mockOnSnapshot.mockImplementation((_q: unknown, cb: (s: { docs: typeof fakeDoc[] }) => void) => {
       cb({ docs: [fakeDoc] })
       return mockUnsubscribe
     })
@@ -61,7 +61,6 @@ describe('useNotes', () => {
   })
 
   it('addNote는 Firestore addDoc 호출', async () => {
-    mockOnSnapshot.mockReturnValue(mockUnsubscribe)
     mockAddDoc.mockResolvedValue({ id: 'new-note' })
 
     const { result } = renderHook(() => useNotes('room-1'))
@@ -71,13 +70,12 @@ describe('useNotes', () => {
     })
 
     expect(mockAddDoc).toHaveBeenCalledWith(
-      undefined,  // collection mock returns undefined
+      undefined,
       expect.objectContaining({ content: '', x: 50, y: 80 })
     )
   })
 
   it('addNote는 content 파라미터를 전달', async () => {
-    mockOnSnapshot.mockReturnValue(mockUnsubscribe)
     mockAddDoc.mockResolvedValue({ id: 'new-note' })
 
     const { result } = renderHook(() => useNotes('room-1'))
@@ -93,7 +91,6 @@ describe('useNotes', () => {
   })
 
   it('updateNote는 Firestore updateDoc 호출', async () => {
-    mockOnSnapshot.mockReturnValue(mockUnsubscribe)
     mockUpdateDoc.mockResolvedValue(undefined)
 
     const { result } = renderHook(() => useNotes('room-1'))
@@ -109,7 +106,6 @@ describe('useNotes', () => {
   })
 
   it('moveNote는 x, y를 updateDoc에 전달', async () => {
-    mockOnSnapshot.mockReturnValue(mockUnsubscribe)
     mockUpdateDoc.mockResolvedValue(undefined)
 
     const { result } = renderHook(() => useNotes('room-1'))
@@ -125,7 +121,6 @@ describe('useNotes', () => {
   })
 
   it('deleteNote는 Firestore deleteDoc 호출', async () => {
-    mockOnSnapshot.mockReturnValue(mockUnsubscribe)
     mockDeleteDoc.mockResolvedValue(undefined)
 
     const { result } = renderHook(() => useNotes('room-1'))
@@ -138,7 +133,6 @@ describe('useNotes', () => {
   })
 
   it('changeColor는 colorIndex를 updateDoc에 전달', async () => {
-    mockOnSnapshot.mockReturnValue(mockUnsubscribe)
     mockUpdateDoc.mockResolvedValue(undefined)
 
     const { result } = renderHook(() => useNotes('room-1'))
@@ -153,12 +147,21 @@ describe('useNotes', () => {
     )
   })
 
-  it('언마운트 시 Firestore 구독 해제', () => {
-    mockOnSnapshot.mockReturnValue(mockUnsubscribe)
+  it('notesError: Firestore 오류 시 에러 메시지 반환', () => {
+    mockOnSnapshot.mockImplementation(
+      (_q: unknown, _cb: unknown, errCb: (e: Error) => void) => {
+        errCb(new Error('Permission denied'))
+        return mockUnsubscribe
+      }
+    )
 
+    const { result } = renderHook(() => useNotes('room-1'))
+    expect(result.current.notesError).toBeTruthy()
+  })
+
+  it('언마운트 시 Firestore 구독 해제', () => {
     const { unmount } = renderHook(() => useNotes('room-1'))
     unmount()
-
     expect(mockUnsubscribe).toHaveBeenCalled()
   })
 })
