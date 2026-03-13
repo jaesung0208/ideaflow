@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import type { ClusterGroup, Note } from '@/types'
 
 interface Props {
@@ -43,7 +43,7 @@ function boundingBox(noteIds: string[], notes: Note[]) {
 
 export function ClusterGroupOverlay({ groups, notes }: Props) {
   return (
-    <>
+    <AnimatePresence>
       {groups.map((group, idx) => {
         const bbox = boundingBox(group.noteIds, notes)
         if (!bbox) return null
@@ -80,6 +80,6 @@ export function ClusterGroupOverlay({ groups, notes }: Props) {
           </motion.div>
         )
       })}
-    </>
+    </AnimatePresence>
   )
 }

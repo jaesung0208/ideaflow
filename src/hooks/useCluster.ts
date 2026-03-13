@@ -66,7 +66,7 @@ export function useCluster(): UseClusterReturn {
           'x-user-id': userId,
         },
         body: JSON.stringify({
-          notes: notes.map((n) => ({ id: n.id, content: n.content })),
+          notes: nonEmpty.map((n) => ({ id: n.id, content: n.content })),
         }),
       })
 
