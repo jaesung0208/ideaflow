@@ -1,5 +1,20 @@
 import type { Metadata, Viewport } from 'next'
+import { Caveat, Nunito } from 'next/font/google'
 import './globals.css'
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  weight: ['500', '600'],
+  variable: '--font-nunito',
+  display: 'swap',
+})
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-caveat',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'IdeaFlow — 실시간 아이디어 캔버스',
@@ -17,12 +32,11 @@ export const metadata: Metadata = {
   },
 }
 
-// PRD 요구사항: 브라우저 기본 줌 비활성화 (핀치줌은 Phase 3 커스텀 구현 예정)
+// 핀치줌은 Canvas.tsx의 non-passive touchmove 핸들러로 직접 제어
+// viewport 레벨 줌 제한은 접근성 위반(WCAG 1.4.4)이므로 사용하지 않음
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 }
 
 export default function RootLayout({
@@ -31,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={`${nunito.variable} ${caveat.variable}`}>
       <body className="h-full antialiased">{children}</body>
     </html>
   )

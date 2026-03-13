@@ -14,6 +14,7 @@ export interface Cursor {
   lastSeen: number
   nickname: string
   color: string
+  device: 'mobile' | 'desktop'
 }
 
 export interface UserSession {
@@ -22,6 +23,7 @@ export interface UserSession {
   nickname: string
   color: string
   isNew: boolean       // 최초 접속 여부 (닉네임 모달 표시용)
+  device: 'mobile' | 'desktop'
 }
 
 export interface User {

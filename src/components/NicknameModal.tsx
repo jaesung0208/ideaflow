@@ -20,7 +20,9 @@ export function NicknameModal({ onConfirm }: NicknameModalProps) {
         <h2 className="text-lg font-bold mb-2">닉네임을 입력하세요</h2>
         <p className="text-sm text-gray-500 mb-4">다른 참여자에게 표시됩니다. (선택 사항)</p>
         <form onSubmit={handleSubmit}>
+          <label htmlFor="nickname-input" className="sr-only">닉네임</label>
           <input
+            id="nickname-input"
             type="text"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}

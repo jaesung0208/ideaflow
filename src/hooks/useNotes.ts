@@ -22,11 +22,11 @@ export function useNotes(roomId: string) {
     return () => unsubscribe()
   }, [roomId])
 
-  const addNote = useCallback(async (x: number, y: number) => {
+  const addNote = useCallback(async (x: number, y: number, content = '') => {
     if (!roomId) return
     const colorIndex = Math.floor(Math.random() * NOTE_COLORS.length)
     await addDoc(collection(db, 'rooms', roomId, 'notes'), {
-      content: '',
+      content,
       x,
       y,
       colorIndex,
