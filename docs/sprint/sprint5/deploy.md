@@ -18,15 +18,18 @@
 - ⬜ `npm run build` — 프로덕션 빌드 성공 여부
 - ⬜ `npx tsc --noEmit` — TypeScript 컴파일 에러 없음
 
-### Playwright UI 검증 (sprint-close 자동 실행)
+### Playwright UI 검증 (sprint-close 자동 실행) — 2026-03-14 완료
 
-- ⬜ 메인 페이지 로드 정상
-- ⬜ "새 캔버스 만들기" 클릭 시 TemplatePickerModal 표시
-- ⬜ KPT 템플릿 선택 후 캔버스 이동 및 Zone 가이드라인 렌더링
-- ⬜ 하단 툴바 "템플릿" 버튼 동작
-- ⬜ 기존 노트 있을 때 확인 다이얼로그 표시
-- ⬜ 모바일(375x812) 4버튼 균등 배치
-- ⬜ 콘솔 에러 없음
+- ✅ 메인 페이지 로드 정상
+- ✅ "새 캔버스 만들기" 클릭 시 TemplatePickerModal 표시
+- ✅ KPT 템플릿 선택 후 캔버스 이동 및 Zone 가이드라인 렌더링
+- ✅ 하단 툴바 "템플릿 선택" 버튼 동작
+- ✅ 기존 노트 있을 때 확인 다이얼로그 표시 (노트 6개 문구 포함)
+- ✅ "취소" 클릭 시 picker 미복귀, 캔버스 직접 복귀
+- ✅ 모바일(375x812) 4버튼 균등 배치
+- ✅ 콘솔 에러 0건
+
+상세 보고서: [playwright-report.md](playwright-report.md)
 
 ---
 
