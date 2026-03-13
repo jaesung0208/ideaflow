@@ -59,9 +59,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(clusterResult)
   } catch (error) {
-    console.error('[/api/cluster] 오류:', error)
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('[/api/cluster] 오류:', message)
     return NextResponse.json(
-      { error: 'AI 기능을 일시적으로 사용할 수 없습니다' },
+      { error: message },
       { status: 500 }
     )
   }
