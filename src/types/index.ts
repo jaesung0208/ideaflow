@@ -17,10 +17,11 @@ export interface Cursor {
 }
 
 export interface UserSession {
-  uid: string
+  uid: string          // 탭 전용 ID (커서 식별용, 탭마다 고유)
+  firebaseUid: string  // 실제 Firebase UID (보안 규칙용)
   nickname: string
   color: string
-  isNew: boolean // 최초 접속 여부 (닉네임 모달 표시용)
+  isNew: boolean       // 최초 접속 여부 (닉네임 모달 표시용)
 }
 
 export interface User {

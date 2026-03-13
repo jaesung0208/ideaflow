@@ -23,7 +23,14 @@ const PIN_COLORS = ['#e74c3c', '#e67e22', '#f1c40f', '#27ae60', '#2980b9', '#9b5
 export default function StickyNote({ note, onMove, onUpdate, onDelete, onColorChange }: StickyNoteProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [localContent, setLocalContent] = useState(note.content)
+  const isComposing = useRef(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // 편집 중이 아닐 때만 외부 변경(다른 사용자 수정)을 로컬에 반영
+  useEffect(() => {
+    if (!isEditing) setLocalContent(note.content)
+  }, [note.content, isEditing])
 
   const hash = hashId(note.id)
   const rotation = ((hash % 13) - 6) * 0.55          // -3.3 ~ +3.3도
@@ -51,7 +58,8 @@ export default function StickyNote({ note, onMove, onUpdate, onDelete, onColorCh
   const handleBlur = useCallback(() => {
     setIsEditing(false)
     setShowColorPicker(false)
-  }, [])
+    onUpdate(note.id, localContent)
+  }, [note.id, localContent, onUpdate])
 
   const handleDragEnd = useCallback(
     (_: unknown, info: { offset: { x: number; y: number } }) => {
@@ -228,8 +236,13 @@ export default function StickyNote({ note, onMove, onUpdate, onDelete, onColorCh
               outline: 'none', border: 'none', padding: 0,
               color: 'rgba(0,0,0,0.72)',
             }}
-            value={note.content}
-            onChange={(e) => onUpdate(note.id, e.target.value)}
+            value={localContent}
+            onChange={(e) => setLocalContent(e.target.value)}
+            onCompositionStart={() => { isComposing.current = true }}
+            onCompositionEnd={(e) => {
+              isComposing.current = false
+              setLocalContent((e.target as HTMLTextAreaElement).value)
+            }}
             onBlur={handleBlur}
             onKeyDown={(e) => { if (e.key === 'Escape') handleBlur() }}
             placeholder="아이디어를 입력하세요..."
