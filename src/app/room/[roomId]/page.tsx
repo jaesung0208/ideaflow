@@ -59,6 +59,25 @@ export default function RoomPage({ params }: Props) {
     updateCursor(e.clientX + viewOffset.x, e.clientY + viewOffset.y)
   }, [updateCursor, viewOffset])
 
+  // 모바일 터치 이동 시 커서 위치 업데이트 (단일 터치만)
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0]
+      updateCursor(touch.clientX + viewOffset.x, touch.clientY + viewOffset.y)
+    }
+  }, [updateCursor, viewOffset])
+
+  // 세션 시작 시 초기 커서 등록 (모바일 포함 — 마우스 이동 없어도 접속자로 표시)
+  useEffect(() => {
+    if (!session || loading) return
+    updateCursor(
+      viewOffset.x + window.innerWidth / 2,
+      viewOffset.y + window.innerHeight / 2,
+    )
+  // session.uid가 확정될 때 1회만 실행
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.uid])
+
   // 클러스터링 훅
   const {
     status: clusterStatus,
@@ -132,6 +151,7 @@ export default function RoomPage({ params }: Props) {
       ref={containerRef}
       className="relative flex w-screen h-dvh overflow-hidden"
       onMouseMove={handleMouseMove}
+      onTouchMove={handleTouchMove}
     >
       {session?.isNew && <NicknameModal onConfirm={updateNickname} />}
 
@@ -166,7 +186,9 @@ export default function RoomPage({ params }: Props) {
 
       {/* 데스크톱 전용 우측 사이드바 (lg: 1024px 이상) */}
       <aside className="hidden lg:flex lg:flex-col w-56 border-l border-amber-200/50 bg-amber-50/80 backdrop-blur-sm p-4 z-10">
-        <h2 className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider mb-3">접속자</h2>
+        <h2 className="text-xs font-semibold text-amber-700/70 uppercase tracking-wider mb-3">
+          접속자 {cursors.length + (session ? 1 : 0)}명
+        </h2>
         <div className="flex flex-col gap-2">
           {session && (
             <div className="flex items-center gap-2">
@@ -174,6 +196,12 @@ export default function RoomPage({ params }: Props) {
               <span className="text-sm text-amber-900/80 truncate">{session.nickname} (나)</span>
             </div>
           )}
+          {cursors.map((cursor) => (
+            <div key={cursor.id} className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cursor.color }} />
+              <span className="text-sm text-amber-900/80 truncate">{cursor.nickname}</span>
+            </div>
+          ))}
         </div>
       </aside>
 
