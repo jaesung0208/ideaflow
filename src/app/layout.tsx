@@ -32,12 +32,11 @@ export const metadata: Metadata = {
   },
 }
 
-// PRD 요구사항: 브라우저 기본 줌 비활성화 (핀치줌은 Phase 3 커스텀 구현 예정)
+// 핀치줌은 Canvas.tsx의 non-passive touchmove 핸들러로 직접 제어
+// viewport 레벨 줌 제한은 접근성 위반(WCAG 1.4.4)이므로 사용하지 않음
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 }
 
 export default function RootLayout({

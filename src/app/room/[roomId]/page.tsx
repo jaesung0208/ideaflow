@@ -153,7 +153,7 @@ export default function RoomPage({ params }: Props) {
   }
 
   return (
-    <div
+    <main
       ref={containerRef}
       className="relative flex w-screen h-dvh overflow-hidden"
       onMouseMove={handleMouseMove}
@@ -248,6 +248,6 @@ export default function RoomPage({ params }: Props) {
           {clusterError}
         </div>
       )}
-    </div>
+    </main>
   )
 }
