@@ -12,6 +12,11 @@ body {
   font-family: 'Nunito', 'Arial', sans-serif;
 }
 
+/* 캔버스 컨테이너 — 모바일 키보드 대응 dvh 적용 */
+.canvas-container {
+  height: 100dvh;
+}
+
 /* 캔버스 스크롤바 숨기기 */
 .canvas-container::-webkit-scrollbar {
   display: none;

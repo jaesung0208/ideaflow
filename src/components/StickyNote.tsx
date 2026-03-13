@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, useMotionValue } from 'framer-motion'
 import { Note } from '@/types'
 import { NOTE_COLORS, NOTE_SIZE } from '@/lib/constants'
+import { useLongPress } from '@/hooks/useLongPress'
 
 interface StickyNoteProps {
   note: Note
@@ -23,6 +24,7 @@ const PIN_COLORS = ['#e74c3c', '#e67e22', '#f1c40f', '#27ae60', '#2980b9', '#9b5
 export default function StickyNote({ note, onMove, onUpdate, onDelete, onColorChange }: StickyNoteProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showColorPicker, setShowColorPicker] = useState(false)
+  const [showContextMenu, setShowContextMenu] = useState(false)
   const [localContent, setLocalContent] = useState(note.content)
   const isComposing = useRef(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -68,6 +70,8 @@ export default function StickyNote({ note, onMove, onUpdate, onDelete, onColorCh
     [note.id, note.x, note.y, onMove]
   )
 
+  const longPressHandlers = useLongPress(() => setShowContextMenu(true))
+
   const bg = NOTE_COLORS[note.colorIndex] ?? NOTE_COLORS[0]
   const bgColor = useMotionValue(bg)
   useEffect(() => { bgColor.set(bg) }, [bg, bgColor])
@@ -108,9 +112,50 @@ export default function StickyNote({ note, onMove, onUpdate, onDelete, onColorCh
         flexDirection: 'column',
         userSelect: 'none',
       }}
-      onDoubleClick={(e) => handleEnterEdit(e)}
+      onDoubleClick={(e) => { setShowContextMenu(false); handleEnterEdit(e) }}
+      {...longPressHandlers}
       data-testid="sticky-note"
     >
+      {/* ── 롱프레스 컨텍스트 메뉴 ── */}
+      {showContextMenu && (
+        <div
+          style={{
+            position: 'absolute', top: 30, left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex', gap: 4,
+            background: 'rgba(255,252,245,0.97)',
+            backdropFilter: 'blur(12px)',
+            borderRadius: 12, padding: '6px 8px',
+            boxShadow: '0 6px 24px rgba(0,0,0,0.18)',
+            border: '1px solid rgba(255,255,255,0.9)',
+            zIndex: 60,
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <button
+            style={{ minWidth: 48, minHeight: 40, padding: '0 12px', borderRadius: 8,
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 13, color: 'rgba(0,0,0,0.7)' }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); setShowContextMenu(false); handleEnterEdit() }}
+          >편집</button>
+          <button
+            style={{ minWidth: 48, minHeight: 40, padding: '0 12px', borderRadius: 8,
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 13, color: 'rgba(0,0,0,0.7)' }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); setShowColorPicker(true); setShowContextMenu(false) }}
+          >색상</button>
+          <button
+            style={{ minWidth: 48, minHeight: 40, padding: '0 12px', borderRadius: 8,
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 13, color: '#e74c3c' }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); setShowContextMenu(false); onDelete(note.id) }}
+          >삭제</button>
+        </div>
+      )}
+
       {/* ── 핀 또는 테이프 장식 ── */}
       {usePin ? (
         <div style={{
