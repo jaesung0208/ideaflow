@@ -13,13 +13,27 @@ export async function applyTemplate(
   const notesRef = collection(db, 'rooms', roomId, 'notes')
   const roomRef  = doc(db, 'rooms', roomId)
 
+  const template = getTemplate(templateId)
+
+  // 초기 zone 위치: viewportCenter 기준 절대 좌표로 변환
+  const zonesMap: Record<string, { x: number; y: number; w: number; h: number }> = {}
+  if (template) {
+    for (const zone of template.zones) {
+      zonesMap[zone.id] = {
+        x: viewportCenter.x + zone.x,
+        y: viewportCenter.y + zone.y,
+        w: zone.w,
+        h: zone.h,
+      }
+    }
+  }
+
   const snapshot = await getDocs(notesRef)
   const batch = writeBatch(db)
   snapshot.docs.forEach((d) => batch.delete(d.ref))
-  batch.update(roomRef, { templateId })
+  batch.update(roomRef, { templateId, zones: zonesMap })
   await batch.commit()
 
-  const template = getTemplate(templateId)
   if (!template) return
 
   const addPromises = template.notes.map((note) =>

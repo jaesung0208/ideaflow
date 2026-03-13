@@ -11,7 +11,7 @@ import BottomToolbar from '@/components/BottomToolbar'
 import MiniMap from '@/components/MiniMap'
 import CursorLayer from '@/components/CursorLayer'
 import dynamic from 'next/dynamic'
-import { doc, onSnapshot } from 'firebase/firestore'
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { applyTemplate } from '@/lib/applyTemplate'
 import TemplatePickerModal from '@/components/TemplatePickerModal'
@@ -48,6 +48,7 @@ export default function RoomPage({ params }: Props) {
 
   // 템플릿 관련 상태
   const [templateId, setTemplateId] = useState<string | null>(null)
+  const [zoneRects, setZoneRects] = useState<Record<string, { x: number; y: number; w: number; h: number }>>({})
   const [showTemplatePicker, setShowTemplatePicker] = useState(false)
   const templateApplied = useRef(false)
 
@@ -58,6 +59,7 @@ export default function RoomPage({ params }: Props) {
       if (snap.exists()) {
         const data = snap.data()
         setTemplateId(data.templateId ?? null)
+        setZoneRects(data.zones ?? {})
       }
     })
     return () => unsubscribe()
@@ -183,6 +185,12 @@ export default function RoomPage({ params }: Props) {
     else startMic()
   }, [isMicListening, startMic, stopMic])
 
+  // 존 위치/크기 변경 핸들러 (Firestore 실시간 동기화)
+  const handleZoneChange = useCallback((zoneId: string, rect: { x: number; y: number; w: number; h: number }) => {
+    const roomRef = doc(db, 'rooms', roomId)
+    updateDoc(roomRef, { [`zones.${zoneId}`]: rect })
+  }, [roomId])
+
   // 템플릿 선택 핸들러
   const handleTemplateSelect = useCallback(async (selectedTemplateId: string | null) => {
     setShowTemplatePicker(false)
@@ -195,10 +203,10 @@ export default function RoomPage({ params }: Props) {
     await applyTemplate(roomId, selectedTemplateId, center, session.uid)
   }, [session, roomId, viewOffset, viewSize])
 
-  // 캔버스 중심점 (TemplateZoneOverlay용)
+  // 캔버스 절대 중심점 (TemplateZoneOverlay 폴백용 — applyTemplate의 viewportCenter와 동일)
   const canvasCenter = {
-    x: (viewSize.width || window.innerWidth) / 2 - viewOffset.x,
-    y: (viewSize.height || window.innerHeight) / 2 - viewOffset.y,
+    x: viewOffset.x + (viewSize.width || window.innerWidth) / 2,
+    y: viewOffset.y + (viewSize.height || window.innerHeight) / 2,
   }
 
   if (loading) {
@@ -230,7 +238,12 @@ export default function RoomPage({ params }: Props) {
           onPan={handlePan}
           overlay={
             <>
-              <TemplateZoneOverlay templateId={templateId} canvasCenter={canvasCenter} />
+              <TemplateZoneOverlay
+                templateId={templateId}
+                zoneRects={zoneRects}
+                canvasCenter={canvasCenter}
+                onZoneChange={handleZoneChange}
+              />
               {clusterStatus === 'applied' && clusterGroups.length > 0
                 ? <ClusterGroupOverlay groups={clusterGroups} notes={notes} />
                 : null}
