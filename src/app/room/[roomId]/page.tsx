@@ -10,8 +10,16 @@ import Canvas from '@/components/Canvas'
 import BottomToolbar from '@/components/BottomToolbar'
 import MiniMap from '@/components/MiniMap'
 import CursorLayer from '@/components/CursorLayer'
-import { ClusterGroupOverlay } from '@/components/ClusterGroupOverlay'
-import { ClusterPreviewModal } from '@/components/ClusterPreviewModal'
+import dynamic from 'next/dynamic'
+
+const ClusterGroupOverlay = dynamic(
+  () => import('@/components/ClusterGroupOverlay').then((m) => m.ClusterGroupOverlay),
+  { ssr: false }
+)
+const ClusterPreviewModal = dynamic(
+  () => import('@/components/ClusterPreviewModal').then((m) => m.ClusterPreviewModal),
+  { ssr: false }
+)
 import { useCluster } from '@/hooks/useCluster'
 
 interface Props {

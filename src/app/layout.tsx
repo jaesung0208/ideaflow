@@ -32,6 +32,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      <head>
+        <link rel="preconnect" href="https://firestore.googleapis.com" />
+        <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
+      </head>
       <body className="h-full antialiased">{children}</body>
     </html>
   )

@@ -32,8 +32,11 @@ export function useAuth() {
         const tabId = getOrCreateTabId()
         const nickname = localStorage.getItem(NICKNAME_KEY) ?? '익명 사용자'
         const isNew = !_tabGreeted
+        // UserAgent + pointer 미디어쿼리 조합 (인앱 브라우저 대응)
         const device: UserSession['device'] =
-          /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
+          /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+          window.matchMedia('(pointer: coarse)').matches
+            ? 'mobile' : 'desktop'
 
         const newSession: UserSession = {
           uid: tabId,          // Firestore 커서 문서 ID로 tabId 사용 (탭마다 고유)
