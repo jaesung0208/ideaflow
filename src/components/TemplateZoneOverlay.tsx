@@ -25,6 +25,7 @@ export default function TemplateZoneOverlay({ templateId, canvasCenter }: Props)
             background:   zone.color,
             border:       `2px dashed ${zone.borderColor}`,
             borderRadius: 8,
+            pointerEvents: 'none',
           }}
         >
           <span style={{
@@ -32,6 +33,7 @@ export default function TemplateZoneOverlay({ templateId, canvasCenter }: Props)
             fontSize: 13, fontWeight: 600,
             color: zone.borderColor, opacity: 0.7,
             userSelect: 'none',
+            pointerEvents: 'none',
           }}>
             {zone.label}
           </span>
