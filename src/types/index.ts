@@ -12,6 +12,15 @@ export interface Cursor {
   x: number
   y: number
   lastSeen: number
+  nickname: string
+  color: string
+}
+
+export interface UserSession {
+  uid: string
+  nickname: string
+  color: string
+  isNew: boolean // 최초 접속 여부 (닉네임 모달 표시용)
 }
 
 export interface User {
