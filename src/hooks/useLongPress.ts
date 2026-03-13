@@ -30,5 +30,6 @@ export function useLongPress(onLongPress: () => void, options: LongPressOptions 
     onMouseDown: start,
     onMouseUp: cancel,
     onMouseLeave: cancel,
+    onMouseMove: cancel,  // 드래그 중 롱프레스 방지
   }
 }

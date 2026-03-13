@@ -40,3 +40,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code 로컬 설정 (키/시크릿 포함 가능)
+.claude/settings.local.json
+
+# 플러그인 캐시 및 런타임 데이터
+.playwright-mcp/
+.superpowers/
+docs/superpowers/

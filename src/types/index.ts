@@ -5,6 +5,9 @@ export interface Note {
   y: number
   colorIndex: number
   editorId: string | null
+  isTemplateNote?: boolean
+  createdAt?: unknown  // Firestore Timestamp
+  createdBy?: string
 }
 
 export interface Cursor {

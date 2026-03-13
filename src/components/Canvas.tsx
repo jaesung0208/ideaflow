@@ -57,6 +57,7 @@ export default function Canvas({ notes, viewOffset, onMove, onUpdate, onDelete, 
     if (isPinching) return
     const el = e.target as HTMLElement
     if (el.closest('[data-testid="sticky-note"]')) return
+    if (el.closest('[data-zone-handle]')) return
     setIsPanning(true)
     didPan.current = false
     lastPos.current = { x: e.clientX, y: e.clientY }

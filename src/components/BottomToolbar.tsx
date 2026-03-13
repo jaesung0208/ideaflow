@@ -12,6 +12,7 @@ interface BottomToolbarProps {
   clusterStatus?: ClusterStatus
   onUndo?: () => void
   canUndo?: boolean
+  onOpenTemplatePicker?: () => void
 }
 
 export default function BottomToolbar({
@@ -24,6 +25,7 @@ export default function BottomToolbar({
   clusterStatus = 'idle',
   onUndo,
   canUndo = false,
+  onOpenTemplatePicker,
 }: BottomToolbarProps) {
   return (
     <>
@@ -177,6 +179,30 @@ export default function BottomToolbar({
               <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
               <line x1="12" y1="19" x2="12" y2="23" />
               <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          </button>
+
+          {/* 템플릿 버튼 */}
+          <button
+            style={{
+              width: 44, height: 44,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              borderRadius: 12,
+              background: 'rgba(0,0,0,0.04)',
+              border: '1px solid rgba(0,0,0,0.06)',
+              cursor: 'pointer',
+              transition: 'background 0.2s',
+            }}
+            onClick={onOpenTemplatePicker}
+            aria-label="템플릿 선택"
+            title="캔버스 템플릿 선택"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="rgba(80,50,20,0.7)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
             </svg>
           </button>
         </div>
