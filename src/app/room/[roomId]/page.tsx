@@ -2,11 +2,13 @@
 
 import { use, useCallback, useState, useRef, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { useNotes } from '@/hooks/useNotes'
+import { useCursors } from '@/hooks/useCursors'
 import { NicknameModal } from '@/components/NicknameModal'
 import Canvas from '@/components/Canvas'
 import BottomToolbar from '@/components/BottomToolbar'
 import MiniMap from '@/components/MiniMap'
-import { useNotes } from '@/hooks/useNotes'
+import CursorLayer from '@/components/CursorLayer'
 
 interface Props {
   params: Promise<{ roomId: string }>
@@ -16,6 +18,12 @@ export default function RoomPage({ params }: Props) {
   const { roomId } = use(params)
   const { session, loading, updateNickname } = useAuth()
   const { notes, addNote, updateNote, moveNote, deleteNote, changeColor } = useNotes(roomId)
+  const { cursors, updateCursor } = useCursors(
+    roomId,
+    session?.uid ?? '',
+    session?.nickname ?? '익명 사용자',
+    session?.color ?? '#4ECDC4'
+  )
   const [viewOffset, setViewOffset] = useState({ x: 0, y: 0 })
   const [viewSize, setViewSize] = useState({ width: 0, height: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
@@ -42,16 +50,25 @@ export default function RoomPage({ params }: Props) {
     )
   }, [addNote, notes.length, viewOffset, viewSize])
 
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    // 캔버스 좌표계로 변환 (viewOffset 적용)
+    updateCursor(e.clientX + viewOffset.x, e.clientY + viewOffset.y)
+  }, [updateCursor, viewOffset])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#c4a472]">
-        <div className="text-white/70">연결 중...</div>
+        <div className="text-white/70 text-sm">연결 중...</div>
       </div>
     )
   }
 
   return (
-    <div ref={containerRef} className="relative w-screen h-screen overflow-hidden">
+    <div
+      ref={containerRef}
+      className="relative w-screen h-screen overflow-hidden"
+      onMouseMove={handleMouseMove}
+    >
       {session?.isNew && <NicknameModal onConfirm={updateNickname} />}
 
       <Canvas
@@ -63,6 +80,8 @@ export default function RoomPage({ params }: Props) {
         onColorChange={changeColor}
         onPan={handlePan}
       />
+
+      <CursorLayer cursors={cursors} viewOffset={viewOffset} />
 
       <BottomToolbar onAddNote={handleAddNote} />
 
