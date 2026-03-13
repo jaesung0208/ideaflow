@@ -26,7 +26,8 @@ export default function RoomPage({ params }: Props) {
     roomId,
     session?.uid ?? '',
     session?.nickname ?? '익명 사용자',
-    session?.color ?? '#4ECDC4'
+    session?.color ?? '#4ECDC4',
+    session?.device ?? 'desktop'
   )
   const [viewOffset, setViewOffset] = useState({ x: 0, y: 0 })
   const [viewSize, setViewSize] = useState({ width: 0, height: 0 })
@@ -193,13 +194,17 @@ export default function RoomPage({ params }: Props) {
           {session && (
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: session.color }} />
-              <span className="text-sm text-amber-900/80 truncate">{session.nickname} (나)</span>
+              <span className="text-sm text-amber-900/80 truncate">
+                {session.device === 'mobile' ? '📱' : '💻'} {session.nickname} (나)
+              </span>
             </div>
           )}
           {cursors.map((cursor) => (
             <div key={cursor.id} className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cursor.color }} />
-              <span className="text-sm text-amber-900/80 truncate">{cursor.nickname}</span>
+              <span className="text-sm text-amber-900/80 truncate">
+                {cursor.device === 'mobile' ? '📱' : '💻'} {cursor.nickname}
+              </span>
             </div>
           ))}
         </div>

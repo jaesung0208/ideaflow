@@ -10,7 +10,7 @@ import type { Cursor } from '@/types'
 
 const CURSOR_INACTIVE_MS = 30_000
 
-export function useCursors(roomId: string, userId: string, nickname: string, color: string) {
+export function useCursors(roomId: string, userId: string, nickname: string, color: string, device: 'mobile' | 'desktop' = 'desktop') {
   const [cursors, setCursors] = useState<Cursor[]>([])
 
   useEffect(() => {
@@ -30,6 +30,7 @@ export function useCursors(roomId: string, userId: string, nickname: string, col
               nickname: data.nickname as string,
               color: data.color as string,
               lastSeen: (data.lastSeen as Timestamp)?.toMillis() ?? 0,
+              device: (data.device as 'mobile' | 'desktop') ?? 'desktop',
             }
           })
           .filter((c) => now - c.lastSeen < CURSOR_INACTIVE_MS)
@@ -39,17 +40,17 @@ export function useCursors(roomId: string, userId: string, nickname: string, col
   }, [roomId, userId])
 
   const updateCursorThrottled = useRef(
-    throttle(async (x: number, y: number, uid: string, nick: string, col: string, rid: string) => {
+    throttle(async (x: number, y: number, uid: string, nick: string, col: string, dev: string, rid: string) => {
       if (!rid || !uid) return
       await setDoc(doc(db, 'rooms', rid, 'cursors', uid), {
-        x, y, nickname: nick, color: col, lastSeen: serverTimestamp(),
+        x, y, nickname: nick, color: col, device: dev, lastSeen: serverTimestamp(),
       })
     }, 100)
   ).current
 
   const updateCursor = useCallback((x: number, y: number) => {
-    updateCursorThrottled(x, y, userId, nickname, color, roomId)
-  }, [updateCursorThrottled, userId, nickname, color, roomId])
+    updateCursorThrottled(x, y, userId, nickname, color, device, roomId)
+  }, [updateCursorThrottled, userId, nickname, color, device, roomId])
 
   const removeCursor = useCallback(async () => {
     if (!roomId || !userId) return
