@@ -803,16 +803,22 @@ git commit -m "feat: 하단 툴바에 템플릿 버튼 추가 및 TemplatePicker
 
 ## 완료 기준 (Definition of Done)
 
-- ⬜ 새 캔버스 생성 시 TemplatePickerModal이 표시된다
-- ⬜ KPT 선택 시 Keep / Problem / Try Zone 가이드라인(점선 테두리)이 캔버스 배경에 표시된다
-- ⬜ KPT 선택 시 제목 노트 3개 + 안내 노트 3개가 올바른 영역에 배치된다
-- ⬜ 브레인스토밍 선택 시 중심 노트 1개 + 방향 안내 노트 4개가 배치된다
-- ⬜ 기존 캔버스 하단 툴바 "템플릿" 버튼 클릭 시 TemplatePickerModal이 표시된다
-- ⬜ 기존 노트가 있을 때 템플릿 선택 시 확인 다이얼로그가 표시된다
-- ⬜ 확인 다이얼로그 "취소" 클릭 시 picker로 돌아가지 않고 캔버스로 직접 복귀한다
-- ⬜ templateId 변경이 Firestore를 통해 모든 참여자에게 실시간으로 반영된다
-- ⬜ 모바일(375px) 하단 툴바에 4개 버튼이 균등 배치되고 레이블이 숨겨진다
-- ⬜ `npm run build` 에러 없음
+- ✅ 새 캔버스 생성 시 TemplatePickerModal이 표시된다
+- ✅ KPT 선택 시 Keep / Problem / Try Zone 가이드라인(점선 테두리)이 캔버스 배경에 표시된다
+- ✅ KPT 선택 시 제목 노트 3개 + 안내 노트 3개가 올바른 영역에 배치된다
+- ✅ 브레인스토밍 선택 시 중심 노트 1개 + 방향 안내 노트 4개가 배치된다
+- ✅ 기존 캔버스 하단 툴바 "템플릿" 버튼 클릭 시 TemplatePickerModal이 표시된다
+- ✅ 기존 노트가 있을 때 템플릿 선택 시 확인 다이얼로그가 표시된다
+- ✅ 확인 다이얼로그 "취소" 클릭 시 picker로 돌아가지 않고 캔버스로 직접 복귀한다
+- ✅ templateId 변경이 Firestore를 통해 모든 참여자에게 실시간으로 반영된다
+- ✅ KPT Zone 드래그·리사이즈 및 Firestore 실시간 동기화 (rooms/{roomId}.zones)
+- ✅ 모바일(375px) 하단 툴바에 4개 버튼이 균등 배치되고 레이블이 숨겨진다
+- ✅ `npm run build` 에러 없음
+
+## 검증 결과
+
+- [Playwright 테스트 보고서](sprint5/playwright-report.md)
+- [배포 체크리스트](sprint5/deploy.md)
 
 ---
 
