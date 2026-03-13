@@ -130,15 +130,12 @@ export default function RoomPage({ params }: Props) {
   } = useSpeechToText({
     lang: 'ko-KR',
     onResult: (text) => {
-      // 음성 인식 완료 시 현재 뷰 중앙에 새 포스트잇 생성 (빈 노트 — 내용은 사용자가 편집)
       const offset = (notes.length % 10) * 20
       addNote(
         viewOffset.x + (viewSize.width || window.innerWidth) / 2 + offset,
         viewOffset.y + (viewSize.height || window.innerHeight) / 2 + offset,
+        text,
       )
-      // addNote는 content를 받지 않으므로, 인식된 텍스트(text)는 현재 콘솔에만 기록
-      // 향후 addNote(x, y, content) 시그니처 확장 시 활용 가능
-      console.info('[STT] 인식된 텍스트:', text)
     },
   })
 
@@ -150,7 +147,7 @@ export default function RoomPage({ params }: Props) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#c4a472]">
-        <div className="text-white/70 text-sm">연결 중...</div>
+        <div className="text-white text-sm font-medium">연결 중...</div>
       </div>
     )
   }
