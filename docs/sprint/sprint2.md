@@ -1,5 +1,15 @@
 # Sprint 2: Firebase 연동 및 실시간 동기화 구현 계획
 
+**완료일:** 2026-03-14
+
+## 검증 결과
+
+- [Playwright 검증 보고서](sprint2/playwright-report.md)
+- [배포 체크리스트](sprint2/deploy.md)
+- [스크린샷 모음](sprint2/)
+
+---
+
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
 **Goal:** Firebase Anonymous Auth로 익명 세션을 구현하고, Firestore onSnapshot을 통해 모든 노트 변경 사항이 0.5초 이내에 전 클라이언트에 동기화되는 실시간 협업 엔진을 완성한다.
