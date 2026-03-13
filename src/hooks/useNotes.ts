@@ -48,7 +48,8 @@ function notesReducer(state: Note[], action: NoteAction): Note[] {
   }
 }
 
-export function useNotes() {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function useNotes(_roomId?: string) {
   const [notes, dispatch] = useReducer(notesReducer, [])
 
   const addNote = useCallback((x: number, y: number) => {

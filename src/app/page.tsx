@@ -1,60 +1,29 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNotes } from '@/hooks/useNotes'
-import Canvas from '@/components/Canvas'
-import BottomToolbar from '@/components/BottomToolbar'
-import MiniMap from '@/components/MiniMap'
+import { useRouter } from 'next/navigation'
+import { generateRoomId } from '@/lib/roomId'
 
 export default function Home() {
-  const { notes, addNote, updateNote, moveNote, deleteNote, changeColor } = useNotes()
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [viewOffset, setViewOffset] = useState({ x: 0, y: 0 })
-  const [viewSize, setViewSize] = useState({ width: 0, height: 0 })
+  const router = useRouter()
 
-  // 컨테이너 크기 측정 (미니맵 뷰포트 계산용)
-  useEffect(() => {
-    const update = () => {
-      const el = containerRef.current
-      if (el) setViewSize({ width: el.clientWidth, height: el.clientHeight })
-    }
-    update()
-    window.addEventListener('resize', update)
-    return () => window.removeEventListener('resize', update)
-  }, [])
-
-  // 캔버스 중앙에 노트 추가 (겹침 방지: 20px cascade)
-  const handleAddNote = useCallback(() => {
-    const container = containerRef.current
-    if (!container) return
-    const rect = container.getBoundingClientRect()
-    const offset = (notes.length % 10) * 20
-    addNote(viewOffset.x + rect.width / 2 + offset, viewOffset.y + rect.height / 2 + offset)
-  }, [addNote, notes.length, viewOffset])
+  const handleCreateCanvas = () => {
+    const roomId = generateRoomId()
+    router.push(`/room/${roomId}`)
+  }
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-full bg-slate-50 canvas-container"
-    >
-      <Canvas
-        notes={notes}
-        viewOffset={viewOffset}
-        onMove={moveNote}
-        onUpdate={updateNote}
-        onDelete={deleteNote}
-        onColorChange={changeColor}
-        onPan={(dx, dy) => setViewOffset((prev) => ({ x: prev.x - dx, y: prev.y - dy }))}
-      />
-      <BottomToolbar onAddNote={handleAddNote} />
-      {viewSize.width > 0 && (
-        <MiniMap
-          notes={notes}
-          viewOffset={viewOffset}
-          viewSize={viewSize}
-          onNavigate={(x, y) => setViewOffset({ x, y })}
-        />
-      )}
-    </div>
+    <main className="min-h-screen bg-[#c4a472] flex flex-col items-center justify-center gap-8 p-4">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-white drop-shadow mb-2">IdeaFlow</h1>
+        <p className="text-white/80">링크 공유만으로 실시간 협업 캔버스를 시작하세요</p>
+      </div>
+      <button
+        onClick={handleCreateCanvas}
+        className="bg-[#FFE566] text-gray-800 px-8 py-4 rounded-2xl text-lg font-semibold
+                   shadow-lg hover:brightness-105 active:scale-95 transition-all min-h-[48px]"
+      >
+        새 캔버스 만들기
+      </button>
+    </main>
   )
 }
