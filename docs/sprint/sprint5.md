@@ -815,6 +815,71 @@ git commit -m "feat: 하단 툴바에 템플릿 버튼 추가 및 TemplatePicker
 - ✅ 모바일(375px) 하단 툴바에 4개 버튼이 균등 배치되고 레이블이 숨겨진다
 - ✅ `npm run build` 에러 없음
 
+## 단위 테스트 (Jest)
+
+해커톤 피드백(테스트 전략 4/8, CI/CD 3/7) 반영으로 Sprint 5에서 Jest 단위 테스트 및 GitHub Actions CI 파이프라인을 추가했다.
+
+### 설정
+| 항목 | 내용 |
+|------|------|
+| 테스트 프레임워크 | Jest 30 + React Testing Library 16 |
+| 환경 | jest-environment-jsdom |
+| 설정 파일 | `jest.config.ts`, `jest.setup.ts` |
+| 스크립트 | `npm run test`, `npm run test:ci` (커버리지 포함) |
+
+### 테스트 파일
+
+#### `src/__tests__/hooks/useCluster.test.ts` — 9개
+| 테스트 케이스 | 내용 |
+|--------------|------|
+| 초기 상태 | idle, groups 빈 배열, errorMessage null |
+| 노트 부족 에러 | 유효 노트 1개 이하 시 error 상태 |
+| 빈 노트 필터 | 공백 노트는 카운트에서 제외 |
+| API 성공 | preview 상태 + groups 설정, fetch 호출 파라미터 검증 |
+| API 실패 (ok:false) | error 상태 + 서버 에러 메시지 |
+| 네트워크 오류 | fetch reject 시 error 상태 |
+| cancelCluster | idle로 리셋 |
+| applyCluster | 노트 좌표 재배치, applied 상태, 그룹 간 x좌표 차이 검증 |
+| undoCluster | 이전 노트 복원 후 idle / apply 전 호출 시 null 반환 |
+
+#### `src/__tests__/hooks/useNotes.test.ts` — 9개
+| 테스트 케이스 | 내용 |
+|--------------|------|
+| 초기 상태 | notes 빈 배열 |
+| onSnapshot 매핑 | Firestore 문서를 Note 객체로 변환 |
+| addNote | addDoc 호출 + content/x/y 파라미터 |
+| addNote (content) | STT 텍스트 content 전달 |
+| updateNote | updateDoc에 content 전달 |
+| moveNote | updateDoc에 x/y 전달 |
+| deleteNote | deleteDoc 호출 |
+| changeColor | updateDoc에 colorIndex 전달 |
+| 언마운트 | onSnapshot 구독 해제 |
+
+#### `src/__tests__/hooks/useAuth.test.ts` — 7개
+| 테스트 케이스 | 내용 |
+|--------------|------|
+| 초기 상태 | loading true, session null |
+| 미인증 시 | signInAnonymously 자동 호출 |
+| 인증 완료 | session 설정, loading false |
+| 닉네임 복원 | localStorage에서 기존 닉네임 로드 |
+| updateNickname | session 업데이트 + localStorage 저장 |
+| isNew 플래그 | updateNickname 후 isNew → false |
+| 모바일 감지 | matchMedia pointer:coarse → device: 'mobile' |
+
+### 실행 결과
+```
+Test Suites: 3 passed, 3 total
+Tests:       27 passed, 27 total
+```
+
+### GitHub Actions CI (`.github/workflows/ci.yml`)
+PR 및 `sprint*` 브랜치 push 시 자동 실행:
+```
+Lint → Jest 단위 테스트 (--ci --coverage) → Next.js 빌드 검증
+```
+
+---
+
 ## 검증 결과
 
 - [Playwright 테스트 보고서](sprint5/playwright-report.md)
