@@ -1,76 +1,61 @@
-import { useReducer, useCallback } from 'react'
-import { Note } from '@/types'
-import { NOTE_COLORS, NOTE_SIZE } from '@/lib/constants'
+'use client'
 
-type NoteAction =
-  | { type: 'ADD_NOTE'; payload: { x: number; y: number } }
-  | { type: 'UPDATE_NOTE'; payload: { id: string; content: string } }
-  | { type: 'MOVE_NOTE'; payload: { id: string; x: number; y: number } }
-  | { type: 'DELETE_NOTE'; payload: { id: string } }
-  | { type: 'CHANGE_COLOR'; payload: { id: string; colorIndex: number } }
+import { useState, useEffect, useCallback } from 'react'
+import {
+  collection, onSnapshot, addDoc, updateDoc, deleteDoc,
+  doc, serverTimestamp, query, orderBy,
+} from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { NOTE_COLORS } from '@/lib/constants'
+import type { Note } from '@/types'
 
-function generateId(): string {
-  return `note-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-}
+export function useNotes(roomId: string) {
+  const [notes, setNotes] = useState<Note[]>([])
 
-function notesReducer(state: Note[], action: NoteAction): Note[] {
-  switch (action.type) {
-    case 'ADD_NOTE':
-      return [
-        ...state,
-        {
-          id: generateId(),
-          content: '',
-          x: action.payload.x - NOTE_SIZE.width / 2,
-          y: action.payload.y - NOTE_SIZE.height / 2,
-          colorIndex: Math.floor(Math.random() * NOTE_COLORS.length),
-          editorId: null,
-        },
-      ]
-    case 'UPDATE_NOTE':
-      return state.map((note) =>
-        note.id === action.payload.id ? { ...note, content: action.payload.content } : note
-      )
-    case 'MOVE_NOTE':
-      return state.map((note) =>
-        note.id === action.payload.id
-          ? { ...note, x: action.payload.x, y: action.payload.y }
-          : note
-      )
-    case 'DELETE_NOTE':
-      return state.filter((note) => note.id !== action.payload.id)
-    case 'CHANGE_COLOR':
-      return state.map((note) =>
-        note.id === action.payload.id ? { ...note, colorIndex: action.payload.colorIndex } : note
-      )
-    default:
-      return state
-  }
-}
+  useEffect(() => {
+    if (!roomId) return
+    const notesRef = collection(db, 'rooms', roomId, 'notes')
+    const q = query(notesRef, orderBy('createdAt', 'asc'))
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setNotes(snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Note)))
+    }, (err) => console.error('Firestore 오류:', err))
+    return () => unsubscribe()
+  }, [roomId])
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function useNotes(_roomId?: string) {
-  const [notes, dispatch] = useReducer(notesReducer, [])
+  const addNote = useCallback(async (x: number, y: number) => {
+    if (!roomId) return
+    const colorIndex = Math.floor(Math.random() * NOTE_COLORS.length)
+    await addDoc(collection(db, 'rooms', roomId, 'notes'), {
+      content: '',
+      x,
+      y,
+      colorIndex,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
+  }, [roomId])
 
-  const addNote = useCallback((x: number, y: number) => {
-    dispatch({ type: 'ADD_NOTE', payload: { x, y } })
-  }, [])
+  const updateNote = useCallback(async (id: string, content: string) => {
+    await updateDoc(doc(db, 'rooms', roomId, 'notes', id), {
+      content, updatedAt: serverTimestamp(),
+    })
+  }, [roomId])
 
-  const updateNote = useCallback((id: string, content: string) => {
-    dispatch({ type: 'UPDATE_NOTE', payload: { id, content } })
-  }, [])
+  const moveNote = useCallback(async (id: string, x: number, y: number) => {
+    await updateDoc(doc(db, 'rooms', roomId, 'notes', id), {
+      x, y, updatedAt: serverTimestamp(),
+    })
+  }, [roomId])
 
-  const moveNote = useCallback((id: string, x: number, y: number) => {
-    dispatch({ type: 'MOVE_NOTE', payload: { id, x, y } })
-  }, [])
+  const deleteNote = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, 'rooms', roomId, 'notes', id))
+  }, [roomId])
 
-  const deleteNote = useCallback((id: string) => {
-    dispatch({ type: 'DELETE_NOTE', payload: { id } })
-  }, [])
-
-  const changeColor = useCallback((id: string, colorIndex: number) => {
-    dispatch({ type: 'CHANGE_COLOR', payload: { id, colorIndex } })
-  }, [])
+  const changeColor = useCallback(async (id: string, colorIndex: number) => {
+    await updateDoc(doc(db, 'rooms', roomId, 'notes', id), {
+      colorIndex, updatedAt: serverTimestamp(),
+    })
+  }, [roomId])
 
   return { notes, addNote, updateNote, moveNote, deleteNote, changeColor }
 }
