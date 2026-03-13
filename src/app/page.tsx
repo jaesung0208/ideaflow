@@ -1,13 +1,20 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { generateRoomId } from '@/lib/roomId'
+import { doc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import TemplatePickerModal from '@/components/TemplatePickerModal'
 
 export default function Home() {
   const router = useRouter()
+  const [showPicker, setShowPicker] = useState(false)
 
-  const handleCreateCanvas = () => {
+  const handleTemplateSelect = async (templateId: string | null) => {
     const roomId = generateRoomId()
+    // rooms/{roomId} 문서를 templateId 포함하여 생성
+    await setDoc(doc(db, 'rooms', roomId), { templateId })
     router.push(`/room/${roomId}`)
   }
 
@@ -18,12 +25,20 @@ export default function Home() {
         <p className="text-white/80">링크 공유만으로 실시간 협업 캔버스를 시작하세요</p>
       </div>
       <button
-        onClick={handleCreateCanvas}
+        onClick={() => setShowPicker(true)}
         className="bg-[#FFE566] text-gray-800 px-8 py-4 rounded-2xl text-lg font-semibold
                    shadow-lg hover:brightness-105 active:scale-95 transition-all min-h-[48px]"
       >
         새 캔버스 만들기
       </button>
+
+      {showPicker && (
+        <TemplatePickerModal
+          existingNoteCount={0}
+          onSelect={handleTemplateSelect}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
     </main>
   )
 }

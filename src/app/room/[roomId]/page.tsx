@@ -11,6 +11,11 @@ import BottomToolbar from '@/components/BottomToolbar'
 import MiniMap from '@/components/MiniMap'
 import CursorLayer from '@/components/CursorLayer'
 import dynamic from 'next/dynamic'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { applyTemplate } from '@/lib/applyTemplate'
+import TemplatePickerModal from '@/components/TemplatePickerModal'
+import TemplateZoneOverlay from '@/components/TemplateZoneOverlay'
 
 const ClusterGroupOverlay = dynamic(
   () => import('@/components/ClusterGroupOverlay').then((m) => m.ClusterGroupOverlay),
@@ -40,6 +45,40 @@ export default function RoomPage({ params }: Props) {
   const [viewOffset, setViewOffset] = useState({ x: 0, y: 0 })
   const [viewSize, setViewSize] = useState({ width: 0, height: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // 템플릿 관련 상태
+  const [templateId, setTemplateId] = useState<string | null>(null)
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false)
+  const templateApplied = useRef(false)
+
+  // rooms/{roomId} onSnapshot으로 templateId 구독
+  useEffect(() => {
+    const roomRef = doc(db, 'rooms', roomId)
+    const unsubscribe = onSnapshot(roomRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data()
+        setTemplateId(data.templateId ?? null)
+      }
+    })
+    return () => unsubscribe()
+  }, [roomId])
+
+  // 첫 로드 시 템플릿 자동 적용 (노트가 없고 templateId가 있을 때 1회)
+  useEffect(() => {
+    if (loading) return
+    if (templateApplied.current) return
+    if (!session) return
+    if (notes.length === 0 && templateId) {
+      templateApplied.current = true
+      const center = {
+        x: viewOffset.x + (viewSize.width || window.innerWidth) / 2,
+        y: viewOffset.y + (viewSize.height || window.innerHeight) / 2,
+      }
+      applyTemplate(roomId, templateId, center, session.uid)
+    }
+  // notes.length 변화 전 최초 1회만 실행되도록 의도적으로 의존성 제한
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, templateId, session?.uid])
 
   useEffect(() => {
     const el = containerRef.current
@@ -144,6 +183,24 @@ export default function RoomPage({ params }: Props) {
     else startMic()
   }, [isMicListening, startMic, stopMic])
 
+  // 템플릿 선택 핸들러
+  const handleTemplateSelect = useCallback(async (selectedTemplateId: string | null) => {
+    setShowTemplatePicker(false)
+    if (!session) return
+    templateApplied.current = true
+    const center = {
+      x: viewOffset.x + (viewSize.width || window.innerWidth) / 2,
+      y: viewOffset.y + (viewSize.height || window.innerHeight) / 2,
+    }
+    await applyTemplate(roomId, selectedTemplateId, center, session.uid)
+  }, [session, roomId, viewOffset, viewSize])
+
+  // 캔버스 중심점 (TemplateZoneOverlay용)
+  const canvasCenter = {
+    x: (viewSize.width || window.innerWidth) / 2 - viewOffset.x,
+    y: (viewSize.height || window.innerHeight) / 2 - viewOffset.y,
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#c4a472]">
@@ -172,9 +229,12 @@ export default function RoomPage({ params }: Props) {
           onColorChange={changeColor}
           onPan={handlePan}
           overlay={
-            clusterStatus === 'applied' && clusterGroups.length > 0
-              ? <ClusterGroupOverlay groups={clusterGroups} notes={notes} />
-              : undefined
+            <>
+              <TemplateZoneOverlay templateId={templateId} canvasCenter={canvasCenter} />
+              {clusterStatus === 'applied' && clusterGroups.length > 0
+                ? <ClusterGroupOverlay groups={clusterGroups} notes={notes} />
+                : null}
+            </>
           }
         />
 
@@ -225,6 +285,7 @@ export default function RoomPage({ params }: Props) {
         clusterStatus={clusterStatus}
         onUndo={handleUndoCluster}
         canUndo={clusterStatus === 'applied'}
+        onOpenTemplatePicker={() => setShowTemplatePicker(true)}
       />
 
       <ClusterPreviewModal
@@ -233,6 +294,15 @@ export default function RoomPage({ params }: Props) {
         onApply={handleApplyCluster}
         onCancel={cancelCluster}
       />
+
+      {/* 템플릿 선택 모달 */}
+      {showTemplatePicker && (
+        <TemplatePickerModal
+          existingNoteCount={notes.length}
+          onSelect={handleTemplateSelect}
+          onClose={() => setShowTemplatePicker(false)}
+        />
+      )}
 
       {/* 에러 토스트 */}
       {clusterStatus === 'error' && clusterError && (
