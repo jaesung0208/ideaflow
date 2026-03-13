@@ -28,7 +28,8 @@ function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: Dr
   // 드래그 (라벨 바 영역)
   const handleDragPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation()
-    e.currentTarget.setPointerCapture(e.pointerId)
+    const el = e.currentTarget
+    el.setPointerCapture(e.pointerId)
     const startX = e.clientX
     const startY = e.clientY
     const startRect = { ...rectRef.current }
@@ -39,17 +40,18 @@ function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: Dr
       onZoneChange(id, { ...startRect, x: startRect.x + dx, y: startRect.y + dy })
     }
     const onUp = () => {
-      e.currentTarget.removeEventListener('pointermove', onMove)
-      e.currentTarget.removeEventListener('pointerup', onUp)
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('pointerup', onUp)
     }
-    e.currentTarget.addEventListener('pointermove', onMove)
-    e.currentTarget.addEventListener('pointerup', onUp)
+    el.addEventListener('pointermove', onMove)
+    el.addEventListener('pointerup', onUp)
   }, [id, onZoneChange])
 
   // 리사이즈 (우하단 핸들)
   const handleResizePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation()
-    e.currentTarget.setPointerCapture(e.pointerId)
+    const el = e.currentTarget
+    el.setPointerCapture(e.pointerId)
     const startX = e.clientX
     const startY = e.clientY
     const startRect = { ...rectRef.current }
@@ -64,11 +66,11 @@ function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: Dr
       })
     }
     const onUp = () => {
-      e.currentTarget.removeEventListener('pointermove', onMove)
-      e.currentTarget.removeEventListener('pointerup', onUp)
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('pointerup', onUp)
     }
-    e.currentTarget.addEventListener('pointermove', onMove)
-    e.currentTarget.addEventListener('pointerup', onUp)
+    el.addEventListener('pointermove', onMove)
+    el.addEventListener('pointerup', onUp)
   }, [id, onZoneChange])
 
   return (
