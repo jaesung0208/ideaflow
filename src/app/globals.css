@@ -1,27 +1,48 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Nunito:wght@500;600&display=swap');
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-}
 
 html,
 body {
   height: 100%;
   overflow: hidden;
-  touch-action: none; /* 브라우저 기본 스크롤/줌 방지 */
+  touch-action: none;
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Nunito', 'Arial', sans-serif;
 }
 
-/* 캔버스 컨테이너 스크롤바 숨기기 */
+/* 캔버스 스크롤바 숨기기 */
 .canvas-container::-webkit-scrollbar {
   display: none;
+}
+
+/* 노트 textarea — 손글씨 폰트 + 얇은 스크롤바 */
+.note-textarea {
+  font-family: 'Caveat', cursive;
+  font-size: 16px;
+  line-height: 1.55;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.12) transparent;
+}
+.note-textarea::-webkit-scrollbar { width: 3px; }
+.note-textarea::-webkit-scrollbar-track { background: transparent; }
+.note-textarea::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 99px;
+}
+
+/* 삭제 버튼 hover */
+.note-delete-btn:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: rgba(0, 0, 0, 0.65) !important;
+}
+
+/* 툴바 FAB hover */
+.fab-add:hover {
+  filter: brightness(1.08);
+  transform: scale(1.05);
+}
+.fab-add:active {
+  transform: scale(0.95);
 }

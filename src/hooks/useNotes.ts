@@ -1,6 +1,6 @@
 import { useReducer, useCallback } from 'react'
 import { Note } from '@/types'
-import { DEFAULT_COLOR_INDEX, NOTE_SIZE } from '@/lib/constants'
+import { NOTE_COLORS, NOTE_SIZE } from '@/lib/constants'
 
 type NoteAction =
   | { type: 'ADD_NOTE'; payload: { x: number; y: number } }
@@ -23,7 +23,7 @@ function notesReducer(state: Note[], action: NoteAction): Note[] {
           content: '',
           x: action.payload.x - NOTE_SIZE.width / 2,
           y: action.payload.y - NOTE_SIZE.height / 2,
-          colorIndex: DEFAULT_COLOR_INDEX,
+          colorIndex: Math.floor(Math.random() * NOTE_COLORS.length),
           editorId: null,
         },
       ]
