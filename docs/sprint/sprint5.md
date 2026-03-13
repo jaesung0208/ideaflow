@@ -842,7 +842,7 @@ git commit -m "feat: 하단 툴바에 템플릿 버튼 추가 및 TemplatePicker
 | applyCluster | 노트 좌표 재배치, applied 상태, 그룹 간 x좌표 차이 검증 |
 | undoCluster | 이전 노트 복원 후 idle / apply 전 호출 시 null 반환 |
 
-#### `src/__tests__/hooks/useNotes.test.ts` — 9개
+#### `src/__tests__/hooks/useNotes.test.ts` — 10개
 | 테스트 케이스 | 내용 |
 |--------------|------|
 | 초기 상태 | notes 빈 배열 |
@@ -853,6 +853,7 @@ git commit -m "feat: 하단 툴바에 템플릿 버튼 추가 및 TemplatePicker
 | moveNote | updateDoc에 x/y 전달 |
 | deleteNote | deleteDoc 호출 |
 | changeColor | updateDoc에 colorIndex 전달 |
+| notesError | Firestore 오류 시 에러 메시지 반환 |
 | 언마운트 | onSnapshot 구독 해제 |
 
 #### `src/__tests__/hooks/useAuth.test.ts` — 7개
@@ -869,7 +870,7 @@ git commit -m "feat: 하단 툴바에 템플릿 버튼 추가 및 TemplatePicker
 ### 실행 결과
 ```
 Test Suites: 3 passed, 3 total
-Tests:       27 passed, 27 total
+Tests:       28 passed, 28 total
 ```
 
 ### GitHub Actions CI (`.github/workflows/ci.yml`)
@@ -877,6 +878,34 @@ PR 및 `sprint*` 브랜치 push 시 자동 실행:
 ```
 Lint → Jest 단위 테스트 (--ci --coverage) → Next.js 빌드 검증
 ```
+
+## 해커톤 피드백 개선사항
+
+해커톤 심사 피드백(아키텍처 9/12, 코드 품질 8/10, 기술 스택 7/8, UX 3/5) 기반으로 추가 개선을 진행했다.
+
+### 아키텍처 개선 (Architecture 9→10)
+- ✅ **`useCanvasPan` 훅 추출** (`src/hooks/useCanvasPan.ts`): Canvas.tsx에서 패닝 로직(isPanning, lastPos, didPan, handlePointerDown/Move/Up/Click) 분리. Canvas.tsx는 UI 렌더링에만 집중, 단일 책임 원칙 강화.
+
+### 코드 품질 개선 (Code Quality 8→9)
+- ✅ **`useNotes` 에러 전파**: `notesError` 상태 추가. Firestore onSnapshot 에러 콜백에서 에러 메시지를 상태로 저장, page.tsx에서 에러 토스트로 표시.
+- ✅ **테스트 +1**: notesError 테스트 케이스 추가 (27 → 28개)
+
+### 기술 스택 보강 (Tech Stack 7→8)
+- ✅ **`@next/bundle-analyzer`**: `ANALYZE=true npm run build`로 번들 구성 시각화. `next.config.ts`에 `withBundleAnalyzer` 래핑 적용.
+
+### UX 개선 (UX 3→4)
+- ✅ **`useOnlineStatus` 훅** (`src/hooks/useOnlineStatus.ts`): `navigator.onLine` + `window online/offline` 이벤트로 실시간 네트워크 상태 감지. 오프라인 시 화면 상단 다크 배너 표시.
+
+### 관련 파일
+| 파일 | 변경 내용 |
+|------|-----------|
+| `src/hooks/useCanvasPan.ts` | 신규: 캔버스 패닝 로직 훅 |
+| `src/hooks/useOnlineStatus.ts` | 신규: 네트워크 상태 감지 훅 |
+| `src/hooks/useNotes.ts` | notesError 상태 추가 |
+| `src/components/Canvas.tsx` | useCanvasPan 훅 사용으로 리팩토링 |
+| `src/app/room/[roomId]/page.tsx` | 오프라인 배너 + notesError 토스트 추가 |
+| `next.config.ts` | @next/bundle-analyzer 설정 |
+| `package.json` | analyze 스크립트 추가 |
 
 ---
 
