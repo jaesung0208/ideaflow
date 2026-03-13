@@ -1208,3 +1208,13 @@ git commit -m "perf: 뷰포트 외 노트 렌더링 최적화 (가상화)"
 
 _작성일: 2026-03-14_
 _작성자: sprint-planner 에이전트_
+
+---
+
+## 검증 결과
+
+- [Playwright 검증 보고서](sprint4/playwright-report.md)
+- [스크린샷 모음](sprint4/)
+
+**스프린트 완료일:** 2026-03-14
+**프로덕션 URL:** https://ideaflow-sooty.vercel.app
