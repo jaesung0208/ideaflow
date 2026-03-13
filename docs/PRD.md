@@ -22,7 +22,7 @@
 
 ### 2.3 지능형 어시스턴트 (AI)
 
-- **스마트 클러스터링**: 흩어진 아이디어들을 Gemini AI가 분석하여 유사한 주제끼리 자동 그룹화 및 재배치.
+- **스마트 클러스터링**: 흩어진 아이디어들을 Claude AI가 분석하여 유사한 주제끼리 자동 그룹화 및 재배치.
 
 ## 3. 기술 스택 (Zero-Cost Stack)
 
@@ -36,7 +36,7 @@
 | **Animation** | Framer Motion                 | 제스처 및 애니메이션 (무료)                     |
 | **Database**  | Firebase Firestore            | Spark 요금제 (일일 읽기 5만/쓰기 2만 무료)        |
 | **Auth**      | Firebase Anonymous Auth       | 완전 무료                                |
-| **AI (LLM)**  | Gemini 2.5 Flash              | Google AI Studio 무료 티어 (RPM 제한 내 사용) |
+| **AI (LLM)**  | Claude Haiku (Anthropic)      | Anthropic API (서버사이드 프록시)             |
 | **STT**       | Web Speech API                | 브라우저 내장 기능 (완전 무료)                   |
 | **Hosting**   | Vercel                        | Hobby Plan (평생 무료)                   |
 
