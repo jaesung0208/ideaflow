@@ -297,7 +297,7 @@ export default function StickyNote({ note, onMove, onUpdate, onDelete, onColorCh
           <div
             style={{
               height: '100%',
-              fontFamily: "'Caveat', cursive",
+              fontFamily: "var(--font-caveat), cursive",
               fontSize: 16,
               lineHeight: 1.55,
               color: 'rgba(0,0,0,0.68)',

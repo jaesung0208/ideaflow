@@ -1,5 +1,20 @@
 import type { Metadata, Viewport } from 'next'
+import { Caveat, Nunito } from 'next/font/google'
 import './globals.css'
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  weight: ['500', '600'],
+  variable: '--font-nunito',
+  display: 'swap',
+})
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '600', '700'],
+  variable: '--font-caveat',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'IdeaFlow — 실시간 아이디어 캔버스',
@@ -31,11 +46,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="ko">
-      <head>
-        <link rel="preconnect" href="https://firestore.googleapis.com" />
-        <link rel="preconnect" href="https://identitytoolkit.googleapis.com" />
-      </head>
+    <html lang="ko" className={`${nunito.variable} ${caveat.variable}`}>
       <body className="h-full antialiased">{children}</body>
     </html>
   )
