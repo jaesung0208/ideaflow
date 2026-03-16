@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import type { Note, ClusterGroup, ClusterResult } from '@/types'
 
 type ClusterStatus = 'idle' | 'loading' | 'preview' | 'applied' | 'error'
@@ -41,11 +41,15 @@ function calcGroupPositions(
   return positions
 }
 
+/** 서버리스 rate limit 보완을 위한 클라이언트 쿨다운 (12초) */
+const CLIENT_COOLDOWN_MS = 12 * 1000
+
 export function useCluster(): UseClusterReturn {
   const [status, setStatus] = useState<ClusterStatus>('idle')
   const [groups, setGroups] = useState<ClusterGroup[]>([])
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [previousNotes, setPreviousNotes] = useState<Note[] | null>(null)
+  const lastRequestAt = useRef<number>(0)
 
   const requestCluster = useCallback(async (notes: Note[], userId: string) => {
     const nonEmpty = notes.filter((n) => n.content.trim())
@@ -55,8 +59,19 @@ export function useCluster(): UseClusterReturn {
       return
     }
 
+    // 클라이언트 쿨다운 체크
+    const now = Date.now()
+    const elapsed = now - lastRequestAt.current
+    if (elapsed < CLIENT_COOLDOWN_MS) {
+      const remaining = Math.ceil((CLIENT_COOLDOWN_MS - elapsed) / 1000)
+      setErrorMessage(`${remaining}초 후에 다시 시도해주세요`)
+      setStatus('error')
+      return
+    }
+
     setStatus('loading')
     setErrorMessage(null)
+    lastRequestAt.current = now
 
     try {
       const response = await fetch('/api/cluster', {

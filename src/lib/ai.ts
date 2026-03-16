@@ -14,6 +14,19 @@ export function parseClusterResponse(raw: string): ClusterResult {
     throw new Error('응답 형식이 올바르지 않습니다: groups 필드가 없습니다')
   }
 
+  for (let i = 0; i < parsed.groups.length; i++) {
+    const g = parsed.groups[i]
+    if (typeof g.groupId !== 'string') {
+      throw new Error(`groups[${i}].groupId가 string이 아닙니다`)
+    }
+    if (typeof g.groupName !== 'string') {
+      throw new Error(`groups[${i}].groupName이 string이 아닙니다`)
+    }
+    if (!Array.isArray(g.noteIds) || !g.noteIds.every((id: unknown) => typeof id === 'string')) {
+      throw new Error(`groups[${i}].noteIds가 string[] 형식이 아닙니다`)
+    }
+  }
+
   return parsed as ClusterResult
 }
 

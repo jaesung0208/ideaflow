@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState, useEffect } from 'react'
 import { getTemplate } from '@/lib/templates'
 
 type ZoneRect = { x: number; y: number; w: number; h: number }
@@ -22,8 +22,15 @@ type DraggableZoneProps = {
 }
 
 function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: DraggableZoneProps) {
-  const rectRef = useRef(rect)
-  rectRef.current = rect
+  // 드래그 중에는 로컬 state로만 UI 업데이트, pointerup 시점에만 Firestore 저장
+  const [localRect, setLocalRect] = useState(rect)
+  const localRectRef = useRef(localRect)
+  localRectRef.current = localRect
+
+  // 외부(Firestore)에서 rect가 변경될 때 로컬 state 동기화
+  useEffect(() => {
+    setLocalRect(rect)
+  }, [rect])
 
   // 드래그 (라벨 바 영역)
   const handleDragPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -32,16 +39,19 @@ function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: Dr
     el.setPointerCapture(e.pointerId)
     const startX = e.clientX
     const startY = e.clientY
-    const startRect = { ...rectRef.current }
+    const startRect = { ...localRectRef.current }
 
     const onMove = (ev: PointerEvent) => {
       const dx = ev.clientX - startX
       const dy = ev.clientY - startY
-      onZoneChange(id, { ...startRect, x: startRect.x + dx, y: startRect.y + dy })
+      // 로컬 state만 업데이트 — Firestore 쓰기 없음
+      setLocalRect({ ...startRect, x: startRect.x + dx, y: startRect.y + dy })
     }
     const onUp = () => {
       el.removeEventListener('pointermove', onMove)
       el.removeEventListener('pointerup', onUp)
+      // pointerup 시점에만 Firestore 저장
+      onZoneChange(id, localRectRef.current)
     }
     el.addEventListener('pointermove', onMove)
     el.addEventListener('pointerup', onUp)
@@ -54,12 +64,13 @@ function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: Dr
     el.setPointerCapture(e.pointerId)
     const startX = e.clientX
     const startY = e.clientY
-    const startRect = { ...rectRef.current }
+    const startRect = { ...localRectRef.current }
 
     const onMove = (ev: PointerEvent) => {
       const dx = ev.clientX - startX
       const dy = ev.clientY - startY
-      onZoneChange(id, {
+      // 로컬 state만 업데이트 — Firestore 쓰기 없음
+      setLocalRect({
         ...startRect,
         w: Math.max(100, startRect.w + dx),
         h: Math.max(80, startRect.h + dy),
@@ -68,6 +79,8 @@ function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: Dr
     const onUp = () => {
       el.removeEventListener('pointermove', onMove)
       el.removeEventListener('pointerup', onUp)
+      // pointerup 시점에만 Firestore 저장
+      onZoneChange(id, localRectRef.current)
     }
     el.addEventListener('pointermove', onMove)
     el.addEventListener('pointerup', onUp)
@@ -77,10 +90,10 @@ function DraggableZone({ id, label, color, borderColor, rect, onZoneChange }: Dr
     <div
       style={{
         position: 'absolute',
-        left:   rect.x,
-        top:    rect.y,
-        width:  rect.w,
-        height: rect.h,
+        left:   localRect.x,
+        top:    localRect.y,
+        width:  localRect.w,
+        height: localRect.h,
         background:   color,
         border:       `2px dashed ${borderColor}`,
         borderRadius: 8,

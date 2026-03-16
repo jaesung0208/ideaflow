@@ -3,13 +3,31 @@ import Anthropic from '@anthropic-ai/sdk'
 import { buildClusterPrompt, parseClusterResponse } from '@/lib/ai'
 import type { ClusterRequest } from '@/types'
 
-/** 사용자별 요청 카운터 (서버리스 환경에서는 인스턴스별 독립 — 클라이언트 쿨다운으로 보완) */
+/**
+ * 사용자별 요청 카운터
+ *
+ * 한계: 서버리스(Vercel) 환경에서는 인스턴스별로 독립된 Map을 유지하므로
+ * 인스턴스 간 rate limit 공유가 불가능합니다. 이 제한은 클라이언트 측
+ * 쿨다운(useCluster)으로 보완합니다.
+ * 개선 방안: Upstash Redis 등 외부 KV 스토어를 사용하면 인스턴스 간 공유 가능.
+ *
+ * 메모리 누수 방지: Map 크기가 MAX_MAP_SIZE 초과 시 만료된 항목을 정리합니다.
+ */
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT = 5
 const WINDOW_MS = 60 * 1000
+const MAX_MAP_SIZE = 1000
 
 function checkRateLimit(userId: string): boolean {
   const now = Date.now()
+
+  // Map이 너무 커지면 만료된 항목 정리
+  if (rateLimitMap.size >= MAX_MAP_SIZE) {
+    for (const [key, val] of rateLimitMap) {
+      if (now > val.resetAt) rateLimitMap.delete(key)
+    }
+  }
+
   const entry = rateLimitMap.get(userId)
   if (!entry || now > entry.resetAt) {
     rateLimitMap.set(userId, { count: 1, resetAt: now + WINDOW_MS })

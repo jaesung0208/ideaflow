@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useCallback, useState, useRef, useEffect } from 'react'
+import { use, useCallback, useState, useRef, useEffect, useMemo } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useNotes } from '@/hooks/useNotes'
 import { useCursors } from '@/hooks/useCursors'
@@ -206,10 +206,10 @@ export default function RoomPage({ params }: Props) {
   }, [session, roomId, viewOffset, viewSize])
 
   // 캔버스 절대 중심점 (TemplateZoneOverlay 폴백용 — applyTemplate의 viewportCenter와 동일)
-  const canvasCenter = {
+  const canvasCenter = useMemo(() => ({
     x: viewOffset.x + (viewSize.width || window.innerWidth) / 2,
     y: viewOffset.y + (viewSize.height || window.innerHeight) / 2,
-  }
+  }), [viewOffset, viewSize])
 
   if (loading) {
     return (
