@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { generateRoomId } from '@/lib/roomId'
 import { doc, setDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { signInAnonymously } from 'firebase/auth'
+import { db, auth } from '@/lib/firebase'
 import TemplatePickerModal from '@/components/TemplatePickerModal'
 
 export default function Home() {
@@ -13,7 +14,10 @@ export default function Home() {
 
   const handleTemplateSelect = async (templateId: string | null) => {
     const roomId = generateRoomId()
-    // rooms/{roomId} 문서를 templateId 포함하여 생성
+    // Firestore 쓰기 전 인증 보장 (익명 로그인)
+    if (!auth.currentUser) {
+      await signInAnonymously(auth)
+    }
     await setDoc(doc(db, 'rooms', roomId), { templateId })
     router.push(`/room/${roomId}`)
   }
