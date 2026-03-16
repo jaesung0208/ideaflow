@@ -1,5 +1,5 @@
 import {
-  collection, getDocs, writeBatch, doc, serverTimestamp,
+  collection, getDocs, writeBatch, addDoc, doc, serverTimestamp,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { getTemplate } from '@/lib/templates'
@@ -55,22 +55,18 @@ export async function applyTemplate(
 
   if (!template) return
 
-  // 새 노트 생성: 499개 단위로 분할하여 배치 처리
-  const noteData = template.notes.map((note) => ({
-    content:        note.content,
-    x:              viewportCenter.x + note.x,
-    y:              viewportCenter.y + note.y,
-    colorIndex:     note.colorIndex,
-    editorId:       null,
-    isTemplateNote: note.isTemplateNote,
-    createdAt:      serverTimestamp(),
-    createdBy:      currentUserId,
-  }))
-
-  for (let i = 0; i < noteData.length; i += BATCH_LIMIT) {
-    const chunk = noteData.slice(i, i + BATCH_LIMIT)
-    const batch = writeBatch(db)
-    chunk.forEach((data) => batch.set(doc(notesRef), data))
-    await batch.commit()
-  }
+  // 새 노트 생성: addDoc으로 개별 추가 (batch.set + doc()은 Firebase v9에서 auto-ID 불안정)
+  const addPromises = template.notes.map((note) =>
+    addDoc(notesRef, {
+      content:        note.content,
+      x:              viewportCenter.x + note.x,
+      y:              viewportCenter.y + note.y,
+      colorIndex:     note.colorIndex,
+      editorId:       null,
+      isTemplateNote: note.isTemplateNote,
+      createdAt:      serverTimestamp(),
+      createdBy:      currentUserId,
+    }),
+  )
+  await Promise.all(addPromises)
 }
