@@ -4,6 +4,29 @@
 
 🔗 **라이브 데모**: https://ideaflow-sooty.vercel.app
 
+![CI](https://github.com/jaesung0208/ideaflow/actions/workflows/ci.yml/badge.svg?branch=master)
+
+---
+
+## 테스트 현황
+
+| 테스트 파일 | 테스트 수 | 구문 커버리지 | 함수 커버리지 |
+|------------|----------|------------|------------|
+| `src/__tests__/hooks/useAuth.test.ts` | 7개 | 95.94% | 100% |
+| `src/__tests__/hooks/useCluster.test.ts` | 9개 | 96.24% | 100% |
+| `src/__tests__/hooks/useNotes.test.ts` | 12개 | 100% | 100% |
+| **합계** | **28개** | **97.28%** | **100%** |
+
+> 실행 방법: `npm test` (단위 테스트) / `npm run test:ci` (CI용, 커버리지 포함)
+
+## CI/CD 파이프라인
+
+`.github/workflows/ci.yml` — PR 및 `master`/`sprint*` 브랜치 push 시 자동 실행:
+
+1. **Lint** (`npm run lint`)
+2. **단위 테스트** (`npm run test:ci`) — Jest 28개 + 커버리지 리포트
+3. **빌드 검증** (`npm run build`)
+
 ---
 
 ## 주요 기능
